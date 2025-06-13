@@ -7,7 +7,7 @@ class AppTheme {
   static ThemeData blueTheme = ThemeData(
     primaryColor: primaryBlue,
     scaffoldBackgroundColor: primaryWhite,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: primaryBlue,
       secondary: Colors.blueAccent,
     ),
