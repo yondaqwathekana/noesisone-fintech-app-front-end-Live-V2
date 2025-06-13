@@ -9,6 +9,8 @@ class WelcomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
+
+
     return Scaffold(
       body: Container(
         width: double.infinity,
