@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:noesisone_fintech_app_front_end_live_v2/presentation/home/home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,12 +16,54 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
-      // Trigger login logic here
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
+      final url = Uri.parse(
+          'https://noesisoneauthservice20250624105745-gkabepembnffg2hz.canadacentral-01.azurewebsites.net/api/Auth/login');
+
+      final body = jsonEncode({
+        "email": _emailController.text,
+        "password": _passwordController.text,
+      });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final token = responseData['token'];
+          final userName = responseData['name'] ??
+              'User'; // Ensure your backend returns 'name'
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => HomePage(userName: userName)),
+          );
+
+          // TODO: Save token securely (e.g., using flutter_secure_storage)
+          // TODO: Navigate to your app's home/dashboard screen
+        } else {
+          print('Login failed: ${response.body}');
+          _showError('Invalid credentials or server error.');
+        }
+      } catch (e) {
+        print('Error occurred: $e');
+        _showError('An unexpected error occurred.');
+      }
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -58,6 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 32),
+
+                            // Email
                             TextFormField(
                               controller: _emailController,
                               decoration: const InputDecoration(
@@ -76,6 +123,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                             const SizedBox(height: 20),
+
+                            // Password
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
@@ -102,12 +151,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                             const SizedBox(height: 30),
+
+                            // Login Button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _login,
                                 style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   backgroundColor: Colors.indigo,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -120,13 +172,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
+
+                            // Link to registration
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text("Don't have an account? "),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.pushNamed(context, '/registration');
+                                    Navigator.pushNamed(
+                                        context, '/registration');
                                   },
                                   child: const Text('Register here'),
                                 ),
@@ -140,14 +195,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // RIGHT: Image & Branding Panel
+              // RIGHT: Branding Image
               if (constraints.maxWidth > 800)
                 Expanded(
                   flex: 1,
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.indigo.shade400, Colors.indigo.shade800],
+                        colors: [
+                          Colors.indigo.shade400,
+                          Colors.indigo.shade800
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

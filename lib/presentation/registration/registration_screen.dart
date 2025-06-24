@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -13,17 +15,52 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController(); // Added email controller
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _raceController = TextEditingController();
 
   String? _selectedGender;
   bool _obscurePassword = true;
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
-      // Handle registration logic
-      print("Registering user...");
+      final url = Uri.parse(
+          'https://noesisoneauthservice20250624105745-gkabepembnffg2hz.canadacentral-01.azurewebsites.net/api/Auth/register');
+
+      final body = jsonEncode({
+        "firstName": _firstNameController.text,
+        "lastName": _lastNameController.text,
+        "gender": _selectedGender,
+        "race": _raceController.text,
+        "phoneNumber": _phoneNumberController.text,
+        "email": _emailController.text,
+        "password": _passwordController.text,
+        "confirmPassword": _confirmPasswordController.text,
+      });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          print('User registered successfully.');
+          // You can show a success dialog or navigate to login screen here
+        } else {
+          print('Failed to register user: ${response.body}');
+          // Show error to user here
+        }
+      } catch (e) {
+        print('Error occurred: $e');
+        // Show error to user here
+      }
     }
   }
 
@@ -52,13 +89,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color:   Colors.indigo,
+                                color: Colors.indigo,
                               ),
                             ),
                             const SizedBox(height: 10),
                             const Text(
                               'Fill in your details to get started',
-                              style: TextStyle(fontSize: 16, color: Colors.black54),
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.black54),
                             ),
                             const SizedBox(height: 30),
 
@@ -70,8 +108,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 prefixIcon: Icon(Icons.person),
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) =>
-                                  value!.isEmpty ? 'Please enter your first name' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'Please enter your first name'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
 
@@ -83,8 +122,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 prefixIcon: Icon(Icons.person_outline),
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) =>
-                                  value!.isEmpty ? 'Please enter your last name' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'Please enter your last name'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
 
@@ -121,8 +161,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 prefixIcon: Icon(Icons.phone_android),
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) =>
-                                  value!.isEmpty ? 'Enter your phone number' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'Enter your phone number'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
 
@@ -136,6 +177,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ),
                               validator: (value) =>
                                   value!.isEmpty ? 'Enter your race' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Email (added)
+                            TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                prefixIcon: Icon(Icons.email),
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    !value.contains('@')) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 16),
 
@@ -158,8 +219,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   },
                                 ),
                               ),
-                              validator: (value) =>
-                                  value!.length < 6 ? 'Password too short' : null,
+                              validator: (value) => value!.length < 6
+                                  ? 'Password too short'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
 
@@ -187,8 +249,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               child: ElevatedButton(
                                 onPressed: _register,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:  Colors.indigo,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  backgroundColor: Colors.indigo,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -229,7 +292,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.indigo.shade400, Colors.indigo.shade800],
+                        colors: [
+                          Colors.indigo.shade400,
+                          Colors.indigo.shade800
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
